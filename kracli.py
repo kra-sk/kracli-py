@@ -86,7 +86,10 @@ def get_userinfo(session_id):
         return storage["userinfo"]
     else:
         ret = apirequest("user/info", session_id, None)
-        return ret['data']
+        if 'data' in ret:
+            return ret['data']
+        else:
+            return None
 
 def login(config, configfile):
     try:
@@ -98,7 +101,7 @@ def login(config, configfile):
     
     if session_id:
         ret = get_userinfo(session_id)
-        if 'error' in ret:
+        if ret == None:
             needlogin = True
         else:
             needlogin = False
@@ -110,7 +113,8 @@ def login(config, configfile):
        ret = apirequest("user/login", None, d)
        if 'success' in ret and 'session_id' in ret:
            session_id = ret['session_id']
-           config.add_section('session')
+           if not config.has_section('session'):
+               config.add_section('session')
            config.set('session','id', session_id)
            with open(configfile, 'w') as configfile:
                config.write(configfile)
