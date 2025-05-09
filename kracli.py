@@ -149,6 +149,8 @@ def main():
       description='kra.sk storage client',
       epilog='For editing objects with -e | --edit you can change the following: \n'
       + '-p NEWPARENT | -n NEWNAME | -P PASSWORD | --shared or --no-shared\n\n'
+      + 'For copying with -o | --copy IDENT you can specify the following: \n'
+      + '-p PARENT | -n NEWNAME | -P CURRENT_PASSWORD | -N NEW_PASSWORD | --shared or --no-shared\n\n'
       + 'For uploading with -u | --upload you can specify the the following: \n'
       + '-p PARENT | -I FILESLOT_IDENT | -T TUS_RESOURCE | -C UPLOAD_CHUNK_MB \n\n'
       + 'You can store your credentials in the login section of a ' 
@@ -160,6 +162,7 @@ def main():
     ex.add_argument('-l', '--list', action='store_true', help='list files and folders')
     ex.add_argument('-c', '--create', type=argstr, metavar='NAME', help='create folder or fileslot (see --shared, --password)')
     ex.add_argument('-e', '--edit', type=argstr, metavar='IDENT', help='edit object, multiple options')
+    ex.add_argument('-o', '--copy', type=argstr, metavar='IDENT', help='copy file, multiple options')
     ex.add_argument('-r', '--remove', type=argstr, metavar='IDENT', help='delete file or folder (see --recursive)')
     ex.add_argument('-d', '--download', type=argstr, metavar='IDENT', help='download file')
     ex.add_argument('-u', '--upload', type=argstr, metavar='PATH_TO_FILE', help='upload file')
@@ -169,6 +172,7 @@ def main():
     parser.add_argument('-W', '--resume', action='store_true', help='download: resume file download')
     parser.add_argument('-S', '--shared', action=argparse.BooleanOptionalAction, help='create or set/unset object as shared')
     parser.add_argument('-P', '--password', metavar='PASSWORD', help='set file/folder password, use empty string for unset')
+    parser.add_argument('-N', '--newpassword', metavar='NEWPASSWORD', help='set file/folder password on copy')
     parser.add_argument('-R', '--recursive', action='store_true', help='delete: delete recursively')
     parser.add_argument('-I', '--ident', metavar='IDENT', help='upload: use pre-existing file ident')
     parser.add_argument('-p', '--parent', metavar='IDENT', help='folder ident to operate on')
@@ -228,6 +232,24 @@ def main():
         if args['password'] and args['password'] != '':
             d['password'] = args['password']
         ret = apirequest('file/create', session_id, d)
+        sys.exit(printret(ret))
+
+    if args['copy']:
+        d = {}
+        d['ident'] = args['copy']
+        if args['name']:
+            d['name'] = args['name']
+        if args['parent']:
+            d['parent'] = args['parent']
+        if args['shared'] == True:
+            d['shared'] = True;
+        else:
+            d['shared'] = False;
+        if args['password'] and args['password'] != '':
+            d['password'] = args['password']
+        if args['newpassword'] and args['newpassword'] != '':
+            d['newpassword'] = args['newpassword']
+        ret = apirequest('file/copy', session_id, d)
         sys.exit(printret(ret))
 
     if args['remove']:
