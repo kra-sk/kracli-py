@@ -13,6 +13,7 @@ import os
 import sys
 import signal
 import base64
+from datetime import datetime
 
 try:
     from io import BytesIO
@@ -212,10 +213,20 @@ def main():
         if args['type']:
             d['type'] = args['type']
         ret = apirequest('file/list', session_id, d)
+
+        if 'data' in ret:
+            for entry in ret['data']:
+                if 'created' in entry:
+                    entry['creatediso8601'] = datetime.fromtimestamp(entry['created']).isoformat()
+
         sys.exit(printret(ret))
 
     if args['objectinfo']:
         ret = apirequest('file/info', session_id, {'ident': args['objectinfo']})
+
+        if 'data' in ret and 'created' in ret['data']:
+            ret['data']['creatediso8601'] = datetime.fromtimestamp(ret['data']['created']).isoformat()
+
         sys.exit(printret(ret))
 
     if args['create']:
